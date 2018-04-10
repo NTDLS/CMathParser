@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="SourceFiles">
+      <UniqueIdentifier>{35788d48-c116-4abd-ab86-c339a33fa536}</UniqueIdentifier>
+      <Extensions>c;cpp;lib</Extensions>
+    </Filter>
+    <Filter Include="Classes &amp; Libraries">
+      <UniqueIdentifier>{6787e595-e8e3-4135-8073-62c4bb2fb963}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Classes &amp; Libraries\CMathParser">
+      <UniqueIdentifier>{4e31c154-64fc-4c52-b7c5-0c1cdb780901}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Entry.Cpp">
+      <Filter>SourceFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CMathParser.cpp">
+      <Filter>Classes &amp; Libraries\CMathParser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\CMathParser.h">
+      <Filter>Classes &amp; Libraries\CMathParser</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
