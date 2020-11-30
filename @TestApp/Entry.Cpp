@@ -81,21 +81,21 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 
 int main(int argc, char *argv[])
 {
-	CheckResult("10 * $Cars$", 1000);
-	CheckResult("10 * $Busses$", 2000);
-	CheckResult("10 * $Trains$", 3000);
+	CheckResult("10 * Cars", 1000);
+	CheckResult("10 * Busses", 2000);
+	CheckResult("10 * Trains", 3000);
 
-	CheckResult("10 * $Cars$ * 10", 10000);
-	CheckResult("10 * $Busses$ * 10", 20000);
-	CheckResult("10 * $Trains$ * 10", 30000);
+	CheckResult("10 * Cars * 10", 10000);
+	CheckResult("10 * Busses * 10", 20000);
+	CheckResult("10 * Trains * 10", 30000);
 
-	CheckResult("(10 * $Cars$)", 1000);
-	CheckResult("(10 * $Busses$)", 2000);
-	CheckResult("(10 * $Trains$)", 3000);
+	CheckResult("(10 * Cars)", 1000);
+	CheckResult("(10 * Busses)", 2000);
+	CheckResult("(10 * Trains)", 3000);
 
-	CheckResult("10 + ((10 * $Cars$) * 10)", 10010);
-	CheckResult("10 + ((10 * $Busses$) * 10)", 20010);
-	CheckResult("10 + ((10 * $Trains$) * 10)", 30010);
+	CheckResult("10 + ((10 * Cars) * 10)", 10010);
+	CheckResult("10 + ((10 * Busses) * 10)", 20010);
+	CheckResult("10 + ((10 * Trains) * 10)", 30010);
 
 	CheckResult("9^2*9^2-1", 26);
 	CheckResult("!10+10", 10);

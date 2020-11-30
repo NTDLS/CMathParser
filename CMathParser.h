@@ -62,7 +62,6 @@ public:
 	bool IsMathChar(const char cChar);
 	bool IsValidChar(const char cChar);
 	bool IsValidVariableChar(const char cChar);
-	bool IsVariableBoundary(const char cChar);
 	bool IsIntegerExclusive(const char *sOperator);
 	int MatchParentheses(const char *sExpression, const int iExpressionSz);
 	int DoubleToChar(double dVal, char *sOut, int iMaxOutSz);

@@ -839,33 +839,22 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 			{
 				LastChar = -1;
 			}
-			else if (this->IsVariableBoundary(sSource[iRPos]))
+			else if (this->IsValidVariableChar(sSource[iRPos]))
 			{
 				//Parse variable name.
 				char sVarName[CMATHPARSER_MAX_VAR_LENGTH + 1];
 
-				iRPos++; //Skip variable boundary.
 				int iVarWPos = 0;
 
-				while (!this->IsVariableBoundary(sSource[iRPos]))
+				while (this->IsValidVariableChar(sSource[iRPos]))
 				{
-					if (!this->IsValidVariableChar(sSource[iRPos]))
-					{
-						return this->SetError(ResultInvalidToken, "Character is disallowed in variable: %c", sSource[iRPos]);
-					}
-
 					sVarName[iVarWPos++] = sSource[iRPos++];
 					if (iVarWPos >= CMATHPARSER_MAX_VAR_LENGTH)
 					{
 						return this->SetError(ResultInvalidToken, "Variable length limit exceeded.");
 					}
-					if (iRPos >= iSourceSz)
-					{
-						return this->SetError(ResultInvalidToken, "Variable not properly terminated.");
-					}
 				}
 
-				//iRPos++; //Skip variable boundary.
 				sVarName[iVarWPos] = '\0';
 
 				if (this->pVariableSetProc == NULL)
@@ -899,6 +888,7 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 				strcpy(pExp->Text + pExp->Length, sVarValue);
 				pExp->Length += strlen(sVarValue);
 
+				iRPos--; //We need to let the outer loop determine if we are done yet.
 				continue;
 			}
 			else {
@@ -1181,13 +1171,6 @@ bool CMathParser::IsValidVariableChar(const char cChar)
 		|| (cChar >= 'a' && cChar <= 'z')
 		|| (cChar >= 'A' && cChar <= 'Z')
 		|| cChar == '_';
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool CMathParser::IsVariableBoundary(const char cChar)
-{
-	return cChar == '$';
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
