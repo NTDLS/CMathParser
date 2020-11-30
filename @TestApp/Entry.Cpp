@@ -29,11 +29,38 @@ void PrintResult(const char *sExpression, bool bDebugMode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool VariableCallback(CMathParser* pParser, const char* sVarName, double* dReturnValue)
+{
+	if (_strcmpi(sVarName, "Cars") == 0)
+	{
+		*dReturnValue = 100;
+	}
+	else if (_strcmpi(sVarName, "Busses") == 0)
+	{
+		*dReturnValue = 200;
+	}
+	else if (_strcmpi(sVarName, "Trains") == 0)
+	{
+		*dReturnValue = 300;
+	}
+	else
+	{
+		return false; //We didn't have a variable by that name.
+	}
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CheckResult(const char *sExpression, double dExpectedResult)
 {
 	double dResult = 0;
 	CMathParser MP;
 	MP.DebugMode(false);
+
+	MP.SetVariableSetCallback(&VariableCallback);
+
 	if(MP.Calculate(sExpression, &dResult) != CMathParser::ResultOk)
 	{
 		printf("Error in Formula.\n");
@@ -54,6 +81,22 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 
 int main(int argc, char *argv[])
 {
+	CheckResult("10 * $Cars$", 1000);
+	CheckResult("10 * $Busses$", 2000);
+	CheckResult("10 * $Trains$", 3000);
+
+	CheckResult("10 * $Cars$ * 10", 10000);
+	CheckResult("10 * $Busses$ * 10", 20000);
+	CheckResult("10 * $Trains$ * 10", 30000);
+
+	CheckResult("(10 * $Cars$)", 1000);
+	CheckResult("(10 * $Busses$)", 2000);
+	CheckResult("(10 * $Trains$)", 3000);
+
+	CheckResult("10 + ((10 * $Cars$) * 10)", 10010);
+	CheckResult("10 + ((10 * $Busses$) * 10)", 20010);
+	CheckResult("10 + ((10 * $Trains$) * 10)", 30010);
+
 	CheckResult("9^2*9^2-1", 26);
 	CheckResult("!10+10", 10);
 	CheckResult("10+!10", 10);

@@ -2,9 +2,10 @@
 #define _CMathParser_H
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define CMATHPARSER_MIN_PRECISION		0
-#define CMATHPARSER_MAX_PRECISION		32
-#define CMATHPARSER_DEFAULT_PRECISION	16
+#define CMATHPARSER_MIN_PRECISION     0
+#define CMATHPARSER_MAX_PRECISION     32
+#define CMATHPARSER_DEFAULT_PRECISION 16
+#define CMATHPARSER_MAX_VAR_LENGTH    128
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +25,8 @@ private:
 	} MATHINSTANCE, *LPMATHINSTANCE;
 
 public:
-	typedef void(*DebugTextCallback)(const char *sText);
+	typedef void(*TDebugTextCallback)(CMathParser* pParser, const char* sText);
+	typedef bool (*TVariableSetCallback)(CMathParser* pParser, const char* sVarName, double* dReturnValue);
 
 	enum MathResult {
 		ResultFoundNegative = -1,
@@ -39,7 +41,8 @@ public:
 		ResultDoubleTextConversionFailed,
 		ResultRightValueFailed,
 		ResultParenthesesMismatch,
-		ResultMemoryAllocationError
+		ResultMemoryAllocationError,
+		ResultUndefiendVariable
 	};
 
 	typedef struct _tag_Error_Information {
@@ -58,6 +61,8 @@ public:
 
 	bool IsMathChar(const char cChar);
 	bool IsValidChar(const char cChar);
+	bool IsValidVariableChar(const char cChar);
+	bool IsVariableBoundary(const char cChar);
 	bool IsIntegerExclusive(const char *sOperator);
 	int MatchParentheses(const char *sExpression, const int iExpressionSz);
 	int DoubleToChar(double dVal, char *sOut, int iMaxOutSz);
@@ -69,8 +74,11 @@ public:
 	short Precision(short iPrecision);
 	short Precision(void);
 
-	DebugTextCallback DebugProc(void);
-	DebugTextCallback DebugProc(DebugTextCallback debugProc);
+	TVariableSetCallback GetVariableSetCallback(void);
+	TVariableSetCallback SetVariableSetCallback(TVariableSetCallback procPtr);
+
+	TDebugTextCallback GetDebugCallback(void);
+	TDebugTextCallback SetDebugCallback(TDebugTextCallback procPtr);
 
 	bool DebugMode(bool bDebugMode);
 	bool DebugMode(void);
@@ -80,7 +88,8 @@ private:
 	bool cbDebugMode;
 	short ciPrecision;
 	MATHERRORINFO LastErrorInfo;
-	DebugTextCallback pDebugProc;
+	TVariableSetCallback pVariableSetProc;
+	TDebugTextCallback pDebugProc;
 
 	MathResult PerformDoubleOperation(MATHINSTANCE *pInst, double dVal1, const char *sOpr, double dVal2);
 	MathResult PerformBooleanOperation(MATHINSTANCE *pInst, int iVal, const char *sOpr);

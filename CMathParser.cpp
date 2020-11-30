@@ -426,7 +426,7 @@ CMathParser::MathResult CMathParser::ParseOperator(MATHINSTANCE *pInst, MATHEXPR
 
 					if (this->pDebugProc)
 					{
-						this->pDebugProc(sDebugMath);
+						this->pDebugProc(this, sDebugMath);
 					}
 					else {
 						printf("%s", sDebugMath);
@@ -437,7 +437,7 @@ CMathParser::MathResult CMathParser::ParseOperator(MATHINSTANCE *pInst, MATHEXPR
 
 					if (this->pDebugProc)
 					{
-						this->pDebugProc(sDebugMath);
+						this->pDebugProc(this, sDebugMath);
 					}
 					else {
 						printf("%s", sDebugMath);
@@ -496,7 +496,7 @@ CMathParser::MathResult CMathParser::ParseOperator(MATHINSTANCE *pInst, MATHEXPR
 
 					if (this->pDebugProc)
 					{
-						this->pDebugProc(sDebugMath);
+						this->pDebugProc(this, sDebugMath);
 					}
 					else {
 						printf("%s", sDebugMath);
@@ -744,7 +744,7 @@ CMathParser::MathResult CMathParser::CalculateSimpleExpression(MATHINSTANCE *pIn
 
 			if (this->pDebugProc)
 			{
-				this->pDebugProc(sDebugMath);
+				this->pDebugProc(this, sDebugMath);
 			}
 			else {
 				printf("%s", sDebugMath);
@@ -765,7 +765,7 @@ CMathParser::MathResult CMathParser::CalculateSimpleExpression(MATHINSTANCE *pIn
 
 			if (this->pDebugProc)
 			{
-				this->pDebugProc(sDebugMath);
+				this->pDebugProc(this, sDebugMath);
 			}
 			else {
 				printf("%s", sDebugMath);
@@ -807,11 +807,11 @@ int CMathParser::MatchParentheses(const char *sExpression, const int iExpression
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION *pExp, const char *sSource, int iSourceSz)
+CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, const char* sSource, int iSourceSz)
 {
 	pExp->Allocated = (int)iSourceSz + 1;
 
-	pExp->Text = (char *)calloc(sizeof(char), pExp->Allocated);
+	pExp->Text = (char*)calloc(sizeof(char), pExp->Allocated);
 	if (!pExp->Text)
 	{
 		return this->SetError(ResultMemoryAllocationError, "Memory allocation error.");
@@ -838,6 +838,68 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION *pExp, co
 			else if (this->IsValidChar(sSource[iRPos]))
 			{
 				LastChar = -1;
+			}
+			else if (this->IsVariableBoundary(sSource[iRPos]))
+			{
+				//Parse variable name.
+				char sVarName[CMATHPARSER_MAX_VAR_LENGTH + 1];
+
+				iRPos++; //Skip variable boundary.
+				int iVarWPos = 0;
+
+				while (!this->IsVariableBoundary(sSource[iRPos]))
+				{
+					if (!this->IsValidVariableChar(sSource[iRPos]))
+					{
+						return this->SetError(ResultInvalidToken, "Character is disallowed in variable: %c", sSource[iRPos]);
+					}
+
+					sVarName[iVarWPos++] = sSource[iRPos++];
+					if (iVarWPos >= CMATHPARSER_MAX_VAR_LENGTH)
+					{
+						return this->SetError(ResultInvalidToken, "Variable length limit exceeded.");
+					}
+					if (iRPos >= iSourceSz)
+					{
+						return this->SetError(ResultInvalidToken, "Variable not properly terminated.");
+					}
+				}
+
+				//iRPos++; //Skip variable boundary.
+				sVarName[iVarWPos] = '\0';
+
+				if (this->pVariableSetProc == NULL)
+				{
+					return this->SetError(ResultInvalidToken, "Variable callback is not set.");
+				}
+
+				double dVarValue = 0;
+				//Get variable value...
+				if (!this->pVariableSetProc(this, sVarName, &dVarValue))
+				{
+					return this->SetError(ResultInvalidToken, "Variable was not defined: %s.", sVarName);
+				}
+
+				char sVarValue[64];
+				//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
+				//TODO: Fixed percision of 8 on variables seems inflexible.
+				int iVarValLength = sprintf(sVarValue, "%.8f", dVarValue);
+
+				if (iSourceSz + iVarValLength >= pExp->Allocated)
+				{
+					pExp->Allocated = (iSourceSz + iVarValLength) + 1;
+					pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
+					if (!pExp->Text)
+					{
+						return this->SetError(ResultMemoryAllocationError, "Memory allocation error.");
+					}
+				}
+
+				//Copy the resulting variable value to the expression for further processing.
+				strcpy(pExp->Text + pExp->Length, sVarValue);
+				pExp->Length += strlen(sVarValue);
+
+				continue;
 			}
 			else {
 				return this->SetError(ResultInvalidToken, "Token is invalid: %c", sSource[iRPos]);
@@ -1113,6 +1175,23 @@ bool CMathParser::IsValidChar(const char cChar)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool CMathParser::IsValidVariableChar(const char cChar)
+{
+	return IsNumeric(cChar)
+		|| (cChar >= 'a' && cChar <= 'z')
+		|| (cChar >= 'A' && cChar <= 'Z')
+		|| cChar == '_';
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CMathParser::IsVariableBoundary(const char cChar)
+{
+	return cChar == '$';
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 CMathParser::MathResult CMathParser::PerformBooleanOperation(MATHINSTANCE *pInst, int iVal, const char *sOpr)
 {
 	if (strcmp(sOpr, "!") == 0)
@@ -1235,7 +1314,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 		{
 			char sDebugMath[1024 + (_CVTBUFSIZE * 2)];
 			sprintf_s(sDebugMath, sizeof(sDebugMath), "\"%s\" = {\n", sExpression);
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("(%s) = {\n", sExpression);
@@ -1266,7 +1345,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 
 		if (this->pDebugProc)
 		{
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("%s", sDebugMath);
@@ -1293,7 +1372,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 		{
 			char sDebugMath[1024 + (_CVTBUFSIZE * 2)];
 			sprintf_s(sDebugMath, sizeof(sDebugMath), "\"%s\" = {\n", sExpression);
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("(%s) = {\n", sExpression);
@@ -1325,7 +1404,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 
 		if (this->pDebugProc)
 		{
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("%s", sDebugMath);
@@ -1352,7 +1431,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 		{
 			char sDebugMath[1024 + (_CVTBUFSIZE * 2)];
 			sprintf_s(sDebugMath, sizeof(sDebugMath), "\"%s\" = {\n", sExpression);
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("(%s) = {\n", sExpression);
@@ -1383,7 +1462,7 @@ CMathParser::MathResult CMathParser::Calculate(const char *sExpression, int iExp
 
 		if (this->pDebugProc)
 		{
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("%s", sDebugMath);
@@ -1467,18 +1546,34 @@ bool CMathParser::DebugMode(bool bDebugMode)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CMathParser::DebugTextCallback CMathParser::DebugProc(void)
+CMathParser::TVariableSetCallback CMathParser::GetVariableSetCallback(void)
+{
+	return this->pVariableSetProc;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CMathParser::TVariableSetCallback CMathParser::SetVariableSetCallback(TVariableSetCallback procPtr)
+{
+	TVariableSetCallback oldProcPtr = this->pVariableSetProc;
+	this->pVariableSetProc = procPtr;
+	return oldProcPtr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CMathParser::TDebugTextCallback CMathParser::GetDebugCallback(void)
 {
 	return this->pDebugProc;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CMathParser::DebugTextCallback CMathParser::DebugProc(DebugTextCallback debugProc)
+CMathParser::TDebugTextCallback CMathParser::SetDebugCallback(TDebugTextCallback procPtr)
 {
-	DebugTextCallback oldDebugProc = this->pDebugProc;
-	this->pDebugProc = debugProc;
-	return oldDebugProc;
+	TDebugTextCallback oldProcPtr = this->pDebugProc;
+	this->pDebugProc = procPtr;
+	return oldProcPtr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1525,7 +1620,7 @@ CMathParser::MathResult CMathParser::SetError(MathResult ErrorCode, const char *
 
 		if (this->pDebugProc)
 		{
-			this->pDebugProc(sDebugMath);
+			this->pDebugProc(this, sDebugMath);
 		}
 		else {
 			printf("%s", sDebugMath);
