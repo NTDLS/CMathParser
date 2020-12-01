@@ -46,7 +46,7 @@ public:
 	};
 
 	typedef struct _tag_Error_Information {
-		char *Text;
+		char* Text;
 		MathResult Error;
 	} MATHERRORINFO, *LPMATHERRORINFO;
 
@@ -65,6 +65,7 @@ public:
 	bool IsIntegerExclusive(const char *sOperator);
 	int MatchParentheses(const char *sExpression, const int iExpressionSz);
 	int DoubleToChar(double dVal, char *sOut, int iMaxOutSz);
+	int ModPow(long long base, long long exponent, int modulus);
 
 	CMathParser(short iPrecision);
 	CMathParser(void);
@@ -101,6 +102,8 @@ private:
 	MathResult GetRightNumber(MATHEXPRESSION *pExp, int iStartPos, char *sOutVal, int iMaxSz, int *iOutSz, int *iEnd);
 	MathResult GetSubExpression(MATHINSTANCE *pInst, int *iBegin, int *iEnd);
 	MathResult ParseOperator(MATHINSTANCE *pInst, MATHEXPRESSION *pExp, const char *sOp, int iOpPos, int iOpSz);
+	MathResult ExecuteNativeMethod(const char* sMethodName, double* dParameters, int iParamCount, double* pOutResult);
+	MathResult ParseMethodParameters(const char* sSource, int iSourceSz, int* piRPos, double** pOutParameters, int* piOutParamCount);
 
 	int GetFreestandingNotOperation(MATHEXPRESSION *pExp);
 	int GetFirstOrderOperation(MATHEXPRESSION *pExp);
@@ -112,6 +115,7 @@ private:
 	int InStr(const char *sSearchFor, const char *sInBuf, const int iBufSz, const int iStartPos);
 	bool ReverseString(char *sBuf, int iBufSz);
 	bool IsWhiteSpace(const char cChar);
+	bool IsNativeMethod(const char* sName);
 	bool IsNumeric(const char cIn);
 	bool IsNumeric(const char *sText, int iLength);
 	bool IsNumeric(const char *sText);

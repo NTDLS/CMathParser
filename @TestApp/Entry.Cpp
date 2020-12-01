@@ -81,6 +81,37 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 
 int main(int argc, char *argv[])
 {
+	CheckResult("sin(0.314000)", 0.3088655200);
+	CheckResult("cos(0.314000)", 0.9511057200);
+	CheckResult("tan(0.314000)", 0.3247436300);
+	CheckResult("sinh(0.250000)", 0.2526123200);
+	CheckResult("cosh(0.250000)", 1.0314131000);
+	CheckResult("tanh(0.250000)", 0.2449186600);
+	CheckResult("log(6.250000)", 1.8325814600);
+	CheckResult("log10(6.250000)", 0.7958800200);
+	CheckResult("exp(6.250000)", 518.0128246700);
+
+	CheckResult("floor(100.500)", 100);
+	CheckResult("ceil(100.500)", 101);
+	CheckResult("sqrt(65)", 8.0622577500);
+	CheckResult("pow(2,10)", 1024);
+	CheckResult("modPow(12345,1024, 10)", 5.00);
+
+	CheckResult("NOT((100 / 100) - 1)", 1);
+	CheckResult("NOT(0)", 1);
+	CheckResult("NOT(1)", 0);
+
+	CheckResult("avg(1,2,3,4,5,6,7,8,9,10)", 5.5);
+	CheckResult("sum(10,10,10,10,10)", 50);
+	CheckResult("cos(Cars)", 0.8623188700);
+	CheckResult("tan(Cars)", -0.5872139200);
+	CheckResult("atan(Cars)", 1.5607966600);
+	CheckResult("sin(Cars)", -0.5063656400);
+	CheckResult("abs(-Cars)", 100.0000000000);
+
+	CheckResult("10 + sum(20 + 30, sum(10,sum(10,10,10) + 10)) + 50", 160);
+	CheckResult("10 + sum(20 + 30, 40) + 50", 150);
+
 	CheckResult("10 * Cars", 1000);
 	CheckResult("10 * Busses", 2000);
 	CheckResult("10 * Trains", 3000);

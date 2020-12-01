@@ -21,6 +21,30 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const char* sNativeMethods[] =
+{
+	"SINH",
+	"COSH",
+	"TANH",
+	"LOG",
+	"LOG10",
+	"EXP",
+	"MODPOW",
+	"SQRT",
+	"POW",
+	"FLOOR",
+	"CEIL",
+	"NOT",
+	"AVG",
+	"SUM",
+	"TAN",
+	"ATAN",
+	"SIN",
+	"COS",
+	"ABS",
+	NULL
+};
+
 const char *sPreOrder[] =
 {
 	"!",  //Logical NOT
@@ -69,6 +93,26 @@ const char *sThirdOrder[] =
 
 	NULL
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// <summary>
+/// Lets us know whether the identifier is a built-in function.
+/// </summary>
+/// <param name="sName"></param>
+/// <returns></returns>
+bool CMathParser::IsNativeMethod(const char* sName)
+{
+	for (int i = 0; sNativeMethods[i] != NULL; i++)
+	{
+		if (_strcmpi(sNativeMethods[i], sName) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -167,6 +211,13 @@ int CMathParser::SmartRound(double dValue, char *sOut, int iMaxOutSz)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Converts a double floating point to a string.
+/// </summary>
+/// <param name="dVal"></param>
+/// <param name="sOut"></param>
+/// <param name="iMaxOutSz"></param>
+/// <returns></returns>
 int CMathParser::DoubleToChar(double dVal, char *sOut, int iMaxOutSz)
 {
 	int iSigned = 0;
@@ -237,6 +288,16 @@ int CMathParser::DoubleToChar(double dVal, char *sOut, int iMaxOutSz)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Gets the number to the left of an operator.
+/// </summary>
+/// <param name="pExp"></param>
+/// <param name="iStartPos"></param>
+/// <param name="sOutVal"></param>
+/// <param name="iMaxSz"></param>
+/// <param name="iOutSz"></param>
+/// <param name="iBegin"></param>
+/// <returns></returns>
 CMathParser::MathResult CMathParser::GetLeftNumber(MATHEXPRESSION *pExp, int iStartPos, char *sOutVal, int iMaxSz, int *iOutSz, int *iBegin)
 {
 	int iRPos = (iStartPos - 1);
@@ -285,6 +346,16 @@ CMathParser::MathResult CMathParser::GetLeftNumber(MATHEXPRESSION *pExp, int iSt
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Gets the number to the right of an operator.
+/// </summary>
+/// <param name="pExp"></param>
+/// <param name="iStartPos"></param>
+/// <param name="sOutVal"></param>
+/// <param name="iMaxSz"></param>
+/// <param name="iOutSz"></param>
+/// <param name="iEnd"></param>
+/// <returns></returns>
 CMathParser::MathResult CMathParser::GetRightNumber(MATHEXPRESSION *pExp, int iStartPos, char *sOutVal, int iMaxSz, int *iOutSz, int *iEnd)
 {
 	int iRPos = iStartPos;
@@ -325,6 +396,15 @@ CMathParser::MathResult CMathParser::GetRightNumber(MATHEXPRESSION *pExp, int iS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Parses a single operation.
+/// </summary>
+/// <param name="pInst"></param>
+/// <param name="pExp"></param>
+/// <param name="sOp"></param>
+/// <param name="iOpPos"></param>
+/// <param name="iOpSz"></param>
+/// <returns></returns>
 CMathParser::MathResult CMathParser::ParseOperator(MATHINSTANCE *pInst, MATHEXPRESSION *pExp, const char *sOp, int iOpPos, int iOpSz)
 {
 	char sVal[_CVTBUFSIZE];
@@ -526,6 +606,11 @@ CMathParser::MathResult CMathParser::ParseOperator(MATHINSTANCE *pInst, MATHEXPR
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Returns the position of a free-standing not operator.
+/// </summary>
+/// <param name="pExp"></param>
+/// <returns></returns>
 int CMathParser::GetFreestandingNotOperation(MATHEXPRESSION *pExp) //Pre order.
 {
 	for (int iRPos = 0; iRPos < pExp->Length; iRPos++)
@@ -534,7 +619,7 @@ int CMathParser::GetFreestandingNotOperation(MATHEXPRESSION *pExp) //Pre order.
 		if (pExp->Text[iRPos] == '!' && (iRPos + 1 < pExp->Length) && pExp->Text[iRPos + 1] != '=')
 		{
 			/*
-			//This is used us enforce the order of NOT expressions.
+			//This is used to enforce the order of NOT expressions.
 			for(int iTmpRPos = iRPos + 1; iRPos < pExp->Length; iTmpRPos++)
 			{
 				if(!IsNumeric(pExp->Text[iTmpRPos]))
@@ -560,13 +645,17 @@ int CMathParser::GetFreestandingNotOperation(MATHEXPRESSION *pExp) //Pre order.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Returns the first position of a first-order operation.
+/// </summary>
+/// <param name="pExp"></param>
+/// <returns></returns>
 int CMathParser::GetFirstOrderOperation(MATHEXPRESSION *pExp) //First order.
 {
 	for (int iRPos = 1; iRPos < pExp->Length; iRPos++)
 	{
 		if (pExp->Text[iRPos] == '*' || pExp->Text[iRPos] == '/' || pExp->Text[iRPos] == '%' || pExp->Text[iRPos] == '~')
 		{
-
 
 			return iRPos;
 		}
@@ -576,6 +665,12 @@ int CMathParser::GetFirstOrderOperation(MATHEXPRESSION *pExp) //First order.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Returns the first position of a second-order operation.
+/// </summary>
+/// <param name="pExp"></param>
+/// <param name="iStartPos"></param>
+/// <returns></returns>
 int CMathParser::GetSecondOrderOperation(MATHEXPRESSION *pExp, int iStartPos) //Second order.
 {
 	for (int iRPos = iStartPos; iRPos < pExp->Length; iRPos++)
@@ -786,6 +881,12 @@ CMathParser::MathResult CMathParser::CalculateSimpleExpression(MATHINSTANCE *pIn
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Verifies that all parentheses have matches.
+/// </summary>
+/// <param name="sExpression"></param>
+/// <param name="iExpressionSz"></param>
+/// <returns></returns>
 int CMathParser::MatchParentheses(const char *sExpression, const int iExpressionSz)
 {
 	int iRPos = 0;
@@ -862,31 +963,71 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					return this->SetError(ResultInvalidToken, "Variable callback is not set.");
 				}
 
-				double dVarValue = 0;
-				//Get variable value...
-				if (!this->pVariableSetProc(this, sVarName, &dVarValue))
+				if (IsNativeMethod(sVarName))
 				{
-					return this->SetError(ResultInvalidToken, "Variable was not defined: %s.", sVarName);
-				}
+					double* pOutParameters = NULL;
+					int iParameterCount = 0;
 
-				char sVarValue[64];
-				//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
-				//TODO: Fixed percision of 8 on variables seems inflexible.
-				int iVarValLength = sprintf(sVarValue, "%.8f", dVarValue);
+					double dProcValue = 0;
+					MathResult result = ResultOk;
 
-				if (iSourceSz + iVarValLength >= pExp->Allocated)
-				{
-					pExp->Allocated = (iSourceSz + iVarValLength) + 1;
-					pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
-					if (!pExp->Text)
+					if ((result = ParseMethodParameters(sSource, iSourceSz, &iRPos, &pOutParameters, &iParameterCount)) != ResultOk)
 					{
-						return this->SetError(ResultMemoryAllocationError, "Memory allocation error.");
+						return result;
 					}
-				}
 
-				//Copy the resulting variable value to the expression for further processing.
-				strcpy(pExp->Text + pExp->Length, sVarValue);
-				pExp->Length += strlen(sVarValue);
+					if ((result = ExecuteNativeMethod(sVarName, pOutParameters, iParameterCount, &dProcValue)) != ResultOk)
+					{
+						return result;
+					}
+
+					char sVarValue[64];
+					//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
+					//TODO: Fixed percision of 8 on variables seems inflexible.
+					int iVarValLength = sprintf(sVarValue, "%.8f", dProcValue);
+
+					if (iSourceSz + iVarValLength >= pExp->Allocated)
+					{
+						pExp->Allocated = (iSourceSz + iVarValLength) + 1;
+						pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
+						if (!pExp->Text)
+						{
+							return this->SetError(ResultMemoryAllocationError, "Memory allocation error.");
+						}
+					}
+
+					//Copy the resulting variable value to the expression for further processing.
+					strcpy(pExp->Text + pExp->Length, sVarValue);
+					pExp->Length += strlen(sVarValue);
+				}
+				else
+				{
+					double dVarValue = 0;
+					//Get variable value...
+					if (!this->pVariableSetProc(this, sVarName, &dVarValue))
+					{
+						return this->SetError(ResultInvalidToken, "Variable was not defined: %s.", sVarName);
+					}
+
+					char sVarValue[64];
+					//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
+					//TODO: Fixed percision of 8 on variables seems inflexible.
+					int iVarValLength = sprintf(sVarValue, "%.8f", dVarValue);
+
+					if (iSourceSz + iVarValLength >= pExp->Allocated)
+					{
+						pExp->Allocated = (iSourceSz + iVarValLength) + 1;
+						pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
+						if (!pExp->Text)
+						{
+							return this->SetError(ResultMemoryAllocationError, "Memory allocation error.");
+						}
+					}
+
+					//Copy the resulting variable value to the expression for further processing.
+					strcpy(pExp->Text + pExp->Length, sVarValue);
+					pExp->Length += strlen(sVarValue);
+				}
 
 				iRPos--; //We need to let the outer loop determine if we are done yet.
 				continue;
@@ -905,6 +1046,317 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 	}
 
 	pExp->Text[pExp->Length] = '\0';
+
+	return ResultOk;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// <summary>
+/// Takes a method name and its parameters, apples logic to the result of a single floating point value.
+/// </summary>
+/// <param name="sMethodName"></param>
+/// <param name="dParameters"></param>
+/// <param name="iParamCount"></param>
+/// <param name="pOutResult"></param>
+/// <returns></returns>
+CMathParser::MathResult CMathParser::ExecuteNativeMethod(
+	const char* sMethodName, double* dParameters, int iParamCount, double* pOutResult)
+{
+	if (_strcmpi(sMethodName, "NOT") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = !((long long)dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "TAN") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = tan(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "SIN") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = sin(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "COS") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = cos(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "ATAN") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = atan(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "ABS") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = abs((long  long)dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "SQRT") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = sqrt(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "POW") == 0)
+	{
+		if (iParamCount != 2)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = pow(dParameters[0], dParameters[1]);
+	}
+	else if (_strcmpi(sMethodName, "MODPOW") == 0)
+	{
+		if (iParamCount != 3)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = this->ModPow(dParameters[0], dParameters[1], dParameters[2]);
+	}
+	else if (_strcmpi(sMethodName, "SINH") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = sinh(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "COSH") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = cosh(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "TANH") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = tanh(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "LOG") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = log(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "LOG10") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = log10(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "EXP") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = exp(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "FLOOR") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = floor(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "CEIL") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = ceil(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "SUM") == 0)
+	{
+		if (iParamCount < 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		double dSum = 0;
+
+		for (int i = 0; i < iParamCount; i++)
+		{
+			dSum += dParameters[i];
+		}
+
+		*pOutResult = dSum;
+	}
+	else if (_strcmpi(sMethodName, "AVG") == 0)
+	{
+		if (iParamCount < 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		double dSum = 0;
+
+		for (int i = 0; i < iParamCount; i++)
+		{
+			dSum += dParameters[i];
+		}
+
+		dSum /= iParamCount;
+
+		*pOutResult = dSum;
+	}
+
+	return ResultOk;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CMathParser::MathResult CMathParser::ParseMethodParameters(
+	const char* sSource, int iSourceSz, int* piRPos, double** pOutParameters, int *piOutParamCount)
+{
+	int iRPos = *piRPos;
+	int iWPos = 0;
+
+	int iParenNestLevel = 0;
+	int iParameters = 0;
+
+	char sBuf[1024];
+
+	if (sSource[iRPos] == '(')
+	{
+		iRPos++; //We skip the first paren because it encloses the currently parsing method.
+		iParenNestLevel++;
+	}
+
+	for (; iRPos < iSourceSz; iRPos++)
+	{
+		if (IsWhiteSpace(sSource[iRPos]))
+		{
+			continue;
+		}
+
+		if (sSource[iRPos] == '(')
+		{
+			if (IsNativeMethod(sBuf))
+			{
+				double* pOutParameters = NULL;
+				int iParameterCount = 0;
+
+				double dProcValue = 0;
+				MathResult result = ResultOk;
+
+				if ((result = ParseMethodParameters(sSource, iSourceSz, &iRPos, &pOutParameters, &iParameterCount)) != ResultOk)
+				{
+					return result;
+				}
+
+				if ((result = ExecuteNativeMethod(sBuf, pOutParameters, iParameterCount, &dProcValue)) != ResultOk)
+				{
+					return result;
+				}
+
+				iRPos--; //Let this loop determine the next action.
+
+				memset(sBuf, 0, sizeof(sBuf));
+
+				iWPos = sprintf(sBuf, "%.8f", dProcValue);
+
+				continue;
+			}
+
+			iParenNestLevel++;
+		}
+		else if (sSource[iRPos] == ')')
+		{
+			iParenNestLevel--;
+		}
+
+		if (sSource[iRPos] == ',')
+		{
+
+		}
+		else if(iParenNestLevel > 0)
+		{
+			sBuf[iWPos++] = sSource[iRPos];
+		}
+
+		if (iParenNestLevel == 0 || sSource[iRPos] == ',')
+		{
+			*pOutParameters = (double*)realloc(*pOutParameters, sizeof(double) * (iParameters + 1));
+
+			sBuf[iWPos] = '\0';
+			double dResult = 0;
+			this->Calculate(sBuf, &dResult);
+
+			(*pOutParameters)[iParameters] = dResult;
+
+			iParameters++;
+
+			if (sSource[iRPos] == ',')
+			{
+				iWPos = 0; //Reset for the next parameter.
+				memset(sBuf, 0, sizeof(sBuf));
+			}
+			else if (iParenNestLevel == 0)
+			{
+				iRPos++;
+				break;
+			}
+		}
+	}
+
+	if (iParenNestLevel != 0)
+	{
+		return this->SetError(ResultParenthesesMismatch, "Parentheses mismatch.");
+	}
+
+	*piOutParamCount = iParameters;
+	*piRPos = iRPos;
 
 	return ResultOk;
 }
@@ -1745,6 +2197,23 @@ int CMathParser::InStr(const char *sSearchFor, const char *sInBuf, const int iBu
 	}
 
 	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int CMathParser::ModPow(long long base, long long exponent, int modulus)
+{
+	long long result = 1;
+	while (exponent > 0)
+	{
+		if (exponent % 2 == 1)
+		{
+			result = (result * base) % modulus;
+		}
+		exponent = exponent >> 1;
+		base = (base * base) % modulus;
+	}
+	return (int)result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
