@@ -23,6 +23,11 @@
 
 const char* sNativeMethods[] =
 {
+	"ACOS",
+	"ASIN",
+	"ATAN",
+	"ATAN2",
+	"LDEXP",
 	"SINH",
 	"COSH",
 	"TANH",
@@ -1072,6 +1077,51 @@ CMathParser::MathResult CMathParser::ExecuteNativeMethod(
 
 		*pOutResult = !((long long)dParameters[0]);
 	}
+	else if (_strcmpi(sMethodName, "ACOS") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = acos(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "ASIN") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = asin(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "ATAN") == 0)
+	{
+		if (iParamCount != 1)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = atan(dParameters[0]);
+	}
+	else if (_strcmpi(sMethodName, "ATAN2") == 0)
+	{
+		if (iParamCount != 2)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = atan2(dParameters[0], dParameters[1]);
+	}
+	else if (_strcmpi(sMethodName, "LDEXP") == 0)
+	{
+		if (iParamCount != 2)
+		{
+			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
+		}
+
+		*pOutResult = ldexp(dParameters[0], (int)dParameters[1]);
+	}
 	else if (_strcmpi(sMethodName, "TAN") == 0)
 	{
 		if (iParamCount != 1)
@@ -1115,7 +1165,7 @@ CMathParser::MathResult CMathParser::ExecuteNativeMethod(
 			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
 		}
 
-		*pOutResult = abs((long  long)dParameters[0]);
+		*pOutResult = fabs(dParameters[0]);
 	}
 	else if (_strcmpi(sMethodName, "SQRT") == 0)
 	{

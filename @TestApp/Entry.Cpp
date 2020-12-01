@@ -81,6 +81,12 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 
 int main(int argc, char *argv[])
 {
+	CheckResult("acos(0.314000)", 1.2513931300);
+	CheckResult("asin(0.314000)", 0.3194032000);
+	CheckResult("atan(0.314000)", 0.3042508300);
+	CheckResult("atan2(0.314000, 22.2)", 0.0141432000);
+	CheckResult("ldexp(99, 3)", 792);
+
 	CheckResult("sin(0.314000)", 0.3088655200);
 	CheckResult("cos(0.314000)", 0.9511057200);
 	CheckResult("tan(0.314000)", 0.3247436300);
