@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	CheckResult("ceil(100.500)", 101);
 	CheckResult("sqrt(65)", 8.0622577500);
 	CheckResult("pow(2,10)", 1024);
-	CheckResult("modPow(12345,1024, 10)", 5.00);
+	CheckResult("modPow(12345, 1024, 10)", 5.00);
 
 	CheckResult("NOT((100 / 100) - 1)", 1);
 	CheckResult("NOT(0)", 1);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	CheckResult("sin(Cars)", -0.5063656400);
 	CheckResult("abs(-Cars)", 100.0000000000);
 
-	CheckResult("10 + sum(20 + 30, sum(10,sum(10,10,10) + 10)) + 50", 160);
+	CheckResult("10 + sum(20 + 30, sum(10, sum(10,10,10) + 10)) + 50", 160);
 	CheckResult("10 + sum(20 + 30, 40) + 50", 150);
 
 	CheckResult("10 * Cars", 1000);
