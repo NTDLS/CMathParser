@@ -26,7 +26,26 @@ private:
 
 public:
 	typedef void(*TDebugTextCallback)(CMathParser* pParser, const char* sText);
+
+	/// <summary>
+	/// Allows for the interception for setting variables.
+	/// </summary>
+	/// <param name="pParser">Instance calling the callback.</param>
+	/// <param name="sMethodName">Name of the variable that was encountered.</param>
+	/// <param name="pOutResult">Pointer for pushing resulting value back to the engine.</param>
+	/// <returns></returns>
 	typedef bool (*TVariableSetCallback)(CMathParser* pParser, const char* sVarName, double* dReturnValue);
+
+	/// <summary>
+	/// Allows for the interception of function calls to implement custom methods.
+	/// </summary>
+	/// <param name="pParser">Instance calling the callback.</param>
+	/// <param name="sMethodName">Name of the function being invoked.</param>
+	/// <param name="dParameters">Array of parameters passed to the method.</param>
+	/// <param name="iParamCount">Count of the parameters being passed to the method.</param>
+	/// <param name="pOutResult">Pointer for pushing resulting value back to the engine.</param>
+	/// <returns></returns>
+	typedef bool (*TMethodCallback)(CMathParser* pParser, const char* sMethodName, double* dParameters, int iParamCount, double* pOutResult);
 
 	enum MathResult {
 		ResultFoundNegative = -1,
@@ -74,6 +93,9 @@ public:
 	short Precision(short iPrecision);
 	short Precision(void);
 
+	TMethodCallback GetMethodCallback(void);
+	TMethodCallback SetMethodCallback(TMethodCallback procPtr);
+
 	TVariableSetCallback GetVariableSetCallback(void);
 	TVariableSetCallback SetVariableSetCallback(TVariableSetCallback procPtr);
 
@@ -89,6 +111,7 @@ private:
 	short ciPrecision;
 	MATHERRORINFO LastErrorInfo;
 	TVariableSetCallback pVariableSetProc;
+	TMethodCallback pMethodProc;
 	TDebugTextCallback pDebugProc;
 
 	MathResult PerformDoubleOperation(MATHINSTANCE *pInst, double dVal1, const char *sOpr, double dVal2);

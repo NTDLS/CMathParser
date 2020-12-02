@@ -29,6 +29,13 @@ void PrintResult(const char *sExpression, bool bDebugMode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Allows for the interception for setting variables.
+/// </summary>
+/// <param name="pParser">Instance calling the callback.</param>
+/// <param name="sMethodName">Name of the variable that was encountered.</param>
+/// <param name="pOutResult">Pointer for pushing resulting value back to the engine.</param>
+/// <returns></returns>
 bool VariableCallback(CMathParser* pParser, const char* sVarName, double* dReturnValue)
 {
 	if (_strcmpi(sVarName, "Cars") == 0)
@@ -53,6 +60,38 @@ bool VariableCallback(CMathParser* pParser, const char* sVarName, double* dRetur
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// <summary>
+/// Allows for the interception of function calls to implement custom methods.
+/// </summary>
+/// <param name="pParser">Instance calling the callback.</param>
+/// <param name="sMethodName">Name of the function being invoked.</param>
+/// <param name="dParameters">Array of parameters passed to the method.</param>
+/// <param name="iParamCount">Count of the parameters being passed to the method.</param>
+/// <param name="pOutResult">Pointer for pushing resulting value back to the engine.</param>
+/// <returns></returns>
+bool MethodCallback(CMathParser* pParser, const char* sMethodName, double* dParameters, int iParamCount, double* pOutResult)
+{
+	if (_strcmpi(sMethodName, "DivideSumBy2") == 0 && iParamCount > 0)
+	{
+		double result = 0;
+
+		for (int i = 0; i < iParamCount; i++)
+		{
+			result += dParameters[i]; //Sum all of the parameters.
+		}
+
+		result /= 2;
+
+		*pOutResult = result; //Pass the result back to the parser engine.
+
+		return true;
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CheckResult(const char *sExpression, double dExpectedResult)
 {
 	double dResult = 0;
@@ -60,6 +99,7 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 	MP.DebugMode(false);
 
 	MP.SetVariableSetCallback(&VariableCallback);
+	MP.SetMethodCallback(&MethodCallback);
 
 	if(MP.Calculate(sExpression, &dResult) != CMathParser::ResultOk)
 	{
@@ -81,6 +121,8 @@ void CheckResult(const char *sExpression, double dExpectedResult)
 
 int main(int argc, char *argv[])
 {
+	CheckResult("(100 * 2) + DivideSumBy2(10, 20, 30, 40) + (3 * 100)", 550);
+
 	CheckResult("acos(0.314000)", 1.2513931300);
 	CheckResult("asin(0.314000)", 0.3194032000);
 	CheckResult("atan(0.314000)", 0.3042508300);

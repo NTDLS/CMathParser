@@ -963,12 +963,13 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 
 				sVarName[iVarWPos] = '\0';
 
-				if (this->pVariableSetProc == NULL)
+				//Skip whitespaces.
+				while( iRPos < iSourceSz && IsWhiteSpace(sSource[iRPos]))
 				{
-					return this->SetError(ResultInvalidToken, "Variable callback is not set.");
+					iRPos++;
 				}
 
-				if (IsNativeMethod(sVarName))
+				if (sSource[iRPos] == '(')
 				{
 					double* pOutParameters = NULL;
 					int iParameterCount = 0;
@@ -981,15 +982,26 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 						return result;
 					}
 
-					if ((result = ExecuteNativeMethod(sVarName, pOutParameters, iParameterCount, &dProcValue)) != ResultOk)
+					if (IsNativeMethod(sVarName))
 					{
-						return result;
+						if ((result = ExecuteNativeMethod(sVarName, pOutParameters, iParameterCount, &dProcValue)) != ResultOk)
+						{
+							return result;
+						}
+					}
+					else if (this->pMethodProc != NULL && this->pMethodProc(this, sVarName, pOutParameters, iParameterCount, &dProcValue))
+					{
+						//Non-native method executed successfully.
+					}
+					else
+					{
+						return this->SetError(ResultInvalidToken, "Undeclared identifier: %s.", sVarName);
 					}
 
 					char sVarValue[64];
 					//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
 					//TODO: Fixed percision of 8 on variables seems inflexible.
-					int iVarValLength = sprintf(sVarValue, "%.8f", dProcValue);
+					int iVarValLength = sprintf_s(sVarValue, sizeof(sVarValue), "%.8f", dProcValue);
 
 					if (iSourceSz + iVarValLength >= pExp->Allocated)
 					{
@@ -1002,7 +1014,7 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					}
 
 					//Copy the resulting variable value to the expression for further processing.
-					strcpy(pExp->Text + pExp->Length, sVarValue);
+					strcpy_s(pExp->Text + pExp->Length, pExp->Allocated - pExp->Length, sVarValue);
 					pExp->Length += strlen(sVarValue);
 				}
 				else
@@ -1017,7 +1029,7 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					char sVarValue[64];
 					//Convert double to string (must be a faster way, but this is just super safe and doesn't create infinite repeating patterns).
 					//TODO: Fixed percision of 8 on variables seems inflexible.
-					int iVarValLength = sprintf(sVarValue, "%.8f", dVarValue);
+					int iVarValLength = sprintf_s(sVarValue, sizeof(sVarValue), "%.8f", dVarValue);
 
 					if (iSourceSz + iVarValLength >= pExp->Allocated)
 					{
@@ -1030,7 +1042,7 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					}
 
 					//Copy the resulting variable value to the expression for further processing.
-					strcpy(pExp->Text + pExp->Length, sVarValue);
+					strcpy_s(pExp->Text + pExp->Length, pExp->Allocated - pExp->Length, sVarValue);
 					pExp->Length += strlen(sVarValue);
 				}
 
@@ -1192,7 +1204,7 @@ CMathParser::MathResult CMathParser::ExecuteNativeMethod(
 			return this->SetError(ResultInvalidToken, "Invalid number of parameters passed to method: %s", sMethodName);
 		}
 
-		*pOutResult = this->ModPow(dParameters[0], dParameters[1], dParameters[2]);
+		*pOutResult = this->ModPow((long long)dParameters[0], (long long)dParameters[1], (int)dParameters[2]);
 	}
 	else if (_strcmpi(sMethodName, "SINH") == 0)
 	{
@@ -1354,7 +1366,7 @@ CMathParser::MathResult CMathParser::ParseMethodParameters(
 
 				memset(sBuf, 0, sizeof(sBuf));
 
-				iWPos = sprintf(sBuf, "%.8f", dProcValue);
+				iWPos = sprintf_s(sBuf, sizeof(sBuf), "%.8f", dProcValue);
 
 				continue;
 			}
@@ -2027,6 +2039,22 @@ bool CMathParser::DebugMode(bool bDebugMode)
 	bool bOldDebugMode = this->cbDebugMode;
 	this->cbDebugMode = bDebugMode;
 	return bOldDebugMode;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CMathParser::TMethodCallback CMathParser::GetMethodCallback(void)
+{
+	return this->pMethodProc;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CMathParser::TMethodCallback CMathParser::SetMethodCallback(TMethodCallback procPtr)
+{
+	TMethodCallback oldProcPtr = this->pMethodProc;
+	this->pMethodProc = procPtr;
+	return oldProcPtr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
