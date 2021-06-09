@@ -1003,9 +1003,10 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					//TODO: Fixed percision of 8 on variables seems inflexible.
 					int iVarValLength = sprintf_s(sVarValue, sizeof(sVarValue), "%.8f", dProcValue);
 
-					if (pExp->Length + iVarValLength >= pExp->Allocated)
+					if (pExp->Length + iVarValLength + iSourceSz >= pExp->Allocated)
 					{
-						pExp->Allocated = (pExp->Length + iVarValLength) + 1;
+						//Adding [iSourceSz] so that the remainder of the expression can be stored without allocating again (unless we encounter more vars).
+						pExp->Allocated = (pExp->Length + iVarValLength) + iSourceSz + 1;
 						pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
 						if (!pExp->Text)
 						{
@@ -1031,9 +1032,10 @@ CMathParser::MathResult CMathParser::AllocateExpression(MATHEXPRESSION* pExp, co
 					//TODO: Fixed percision of 8 on variables seems inflexible.
 					int iVarValLength = sprintf_s(sVarValue, sizeof(sVarValue), "%.8f", dVarValue);
 
-					if (pExp->Length + iVarValLength >= pExp->Allocated)
+					if (pExp->Length + iVarValLength + iSourceSz >= pExp->Allocated)
 					{
-						pExp->Allocated = (pExp->Length + iVarValLength) + 1;
+						//Adding [iSourceSz] so that the remainder of the expression can be stored without allocating again (unless we encounter more vars).
+						pExp->Allocated = (pExp->Length + iVarValLength) + iSourceSz + 1;
 						pExp->Text = (char*)realloc(pExp->Text, sizeof(char) * pExp->Allocated);
 						if (!pExp->Text)
 						{
