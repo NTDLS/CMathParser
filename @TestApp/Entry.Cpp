@@ -38,7 +38,15 @@ void PrintResult(const char *sExpression, bool bDebugMode)
 /// <returns></returns>
 bool VariableCallback(CMathParser* pParser, const char* sVarName, double* dReturnValue)
 {
-	if (_strcmpi(sVarName, "Cars") == 0)
+	if (_strcmpi(sVarName, "X") == 0)
+	{
+		*dReturnValue = 750;
+	}
+	else if (_strcmpi(sVarName, "Y") == 0)
+	{
+		*dReturnValue = 250;
+	}
+	else if (_strcmpi(sVarName, "Cars") == 0)
 	{
 		*dReturnValue = 100;
 	}
@@ -219,6 +227,7 @@ int main(int argc, char *argv[])
 	CheckResult("!(10*10/100-1)", 1);
 	CheckResult("!10+10-1", 9);
 	CheckResult("10+10-!1", 20);
+	CheckResult("X + Y", 1000);
 
 	system("pause");
 
