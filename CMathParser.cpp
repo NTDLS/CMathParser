@@ -1346,6 +1346,8 @@ CMathParser::MathResult CMathParser::ParseMethodParameters(
 
 		if (sSource[iRPos] == '(')
 		{
+			sBuf[iWPos] = '\0';
+
 			if (IsNativeMethod(sBuf))
 			{
 				double* pOutParameters = NULL;
