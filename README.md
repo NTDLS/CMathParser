@@ -14,3 +14,6 @@ It addition to the custom functions and variables, thse are built in: ACOS, ASIN
 **Basic example result:**
 
 ![image](https://user-images.githubusercontent.com/11428567/234916103-089515a5-e2b6-489c-9693-5f02cce0dbf1.png)
+
+
+![image](https://github.com/NTDLS/CMathParser/assets/11428567/6122251b-8812-4ceb-b3d4-87c1f9131f30)
