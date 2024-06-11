@@ -1,6 +1,6 @@
 # CMathParser
 
-A fairly robust mathematics parsing engine for C++ projects which sSupports all standard mathematical operations for integer, decimal (floating point), logic and bitwise.
+A fairly robust mathematics parsing engine for C++ projects which supports all standard mathematical operations for integer, decimal (floating point), logic and bitwise.
 
 Other features include ability for the engine to show its work and the support for custom functions and variables using method callbacks. Lots of example included in: [Entry.cpp](https://github.com/NTDLS/CMathParser/blob/master/%40TestApp/Entry.Cpp)
 
